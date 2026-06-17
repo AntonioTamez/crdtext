@@ -1,0 +1,150 @@
+/* ==========================================================================
+   CRDText — Design Tokens
+   Source of truth: _bmad-output/planning-artifacts/ux-designs/ux-crdtext-2026-06-14/DESIGN.md
+   Strategy: prefers-color-scheme media query (matches Next.js scaffold default;
+   DESIGN.md does not mandate a class-based alternative).
+   ========================================================================== */
+
+:root {
+  /* Colors — light mode (DESIGN.md frontmatter `colors`) */
+  --background: #ffffff;
+  --surface: #f8f9fb;
+  --panel: #f3f4f6;
+  --border: #e5e7eb;
+  --border-strong: #d1d5db;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --accent: #2563eb;
+  --accent-foreground: #ffffff;
+  --accent-subtle: #eff6ff;
+  --user-a: #2563eb;
+  --user-a-subtle: #eff6ff;
+  --user-b: #7c3aed;
+  --user-b-subtle: #f5f3ff;
+  --status-online: #059669;
+  --status-online-subtle: #ecfdf5;
+  --status-offline: #dc2626;
+  --status-offline-subtle: #fef2f2;
+  --status-syncing: #d97706;
+  --status-syncing-subtle: #fffbeb;
+  --concurrent: #d97706;
+  --concurrent-subtle: #fffbeb;
+
+  /* Typography (DESIGN.md frontmatter `typography`) */
+  --font-editor: 'Georgia', 'Times New Roman', serif;
+  --font-editor-size: 16px;
+  --font-editor-line-height: 1.8;
+  --font-editor-weight: 400;
+
+  --font-data: 'SF Mono', 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  --font-data-size: 10px;
+  --font-data-line-height: 1.5;
+  --font-data-weight: 400;
+
+  --font-data-sm-size: 9px;
+  --font-data-sm-line-height: 1.4;
+  --font-data-sm-weight: 700;
+  --font-data-sm-letter-spacing: 0.06em;
+
+  --font-ui: -apple-system, 'Segoe UI', system-ui, sans-serif;
+  --font-ui-size: 13px;
+  --font-ui-line-height: 1.5;
+  --font-ui-weight: 400;
+
+  --font-ui-sm-size: 11px;
+  --font-ui-sm-line-height: 1.4;
+  --font-ui-sm-weight: 500;
+
+  --font-logo-size: 14px;
+  --font-logo-weight: 800;
+  --font-logo-letter-spacing: -0.02em;
+
+  /* Spacing — base 4px scale (DESIGN.md frontmatter `spacing`) */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 20px;
+  --space-2xl: 24px;
+  --space-3xl: 32px;
+  --editor-h: 40px;
+  --editor-v: 48px;
+  --topbar-height: 48px;
+
+  /* Shapes (DESIGN.md frontmatter `rounded`) */
+  --radius-xs: 3px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-pill: 9999px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Colors — dark mode */
+    --background: #0f1117;
+    --surface: #161b27;
+    --panel: #1e2434;
+    --border: #2d3448;
+    --border-strong: #3d4558;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #475569;
+    --accent: #3b82f6;
+    --accent-foreground: #ffffff;
+    --accent-subtle: rgba(59, 130, 246, 0.12);
+    --user-a: #60a5fa;
+    --user-a-subtle: rgba(96, 165, 250, 0.12);
+    --user-b: #a78bfa;
+    --user-b-subtle: rgba(167, 139, 250, 0.12);
+    --status-online: #34d399;
+    --status-online-subtle: rgba(52, 211, 153, 0.1);
+    --status-offline: #f87171;
+    --status-offline-subtle: rgba(248, 113, 113, 0.1);
+    --status-syncing: #fbbf24;
+    --status-syncing-subtle: rgba(251, 191, 36, 0.1);
+    --concurrent: #fbbf24;
+    --concurrent-subtle: rgba(251, 191, 36, 0.1);
+
+    color-scheme: dark;
+  }
+}
+
+/* ==========================================================================
+   Base reset
+   ========================================================================== */
+
+html {
+  height: 100%;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  color: var(--text-primary);
+  background: var(--background);
+  font-family: var(--font-ui);
+  font-size: var(--font-ui-size);
+  line-height: var(--font-ui-line-height);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
