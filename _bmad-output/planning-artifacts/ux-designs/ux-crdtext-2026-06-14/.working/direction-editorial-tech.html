@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRDText — Dirección B: Editorial Tech</title>
+<style>
+  /* ===== DIRECTION B: EDITORIAL TECH =====
+   * Registro: documentation meets precision dashboard
+   * Personalidad: seria, estructurada, intelectualmente honesta — como un paper técnico con buen diseño
+   *
+   * TOKENS (LIGHT):
+   * --bg-base:        #ffffff
+   * --bg-surface:     #f8f9fb
+   * --bg-panel:       #f3f4f6
+   * --border:         #e5e7eb
+   * --border-strong:  #d1d5db
+   * --text-primary:   #111827
+   * --text-secondary: #6b7280
+   * --text-muted:     #9ca3af
+   * --accent:         #2563eb   (azul técnico — decisión, no decoración)
+   * --user-a:         #2563eb
+   * --user-b:         #7c3aed
+   * --online:         #059669
+   * --offline:        #dc2626
+   * --syncing:        #d97706
+   *
+   * TOKENS (DARK override):
+   * --bg-base:        #0f1117
+   * --bg-surface:     #161b27
+   * --bg-panel:       #1e2434
+   * --border:         #2d3448
+   * --text-primary:   #f1f5f9
+   * --text-secondary: #94a3b8
+   * --accent:         #3b82f6
+   * --mono: 'SF Mono', 'JetBrains Mono', monospace
+  */
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #e8eaed;
+    font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+    color: #111827;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 60px;
+    min-height: 100vh;
+  }
+
+  .meta {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .meta h1 { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #2563eb; font-weight: 700; margin-bottom: 6px; }
+  .meta p  { font-size: 13px; color: #6b7280; line-height: 1.5; max-width: 500px; }
+
+  /* TWO SIDE-BY-SIDE: LIGHT + DARK */
+  .pair {
+    display: flex;
+    gap: 24px;
+    width: 100%;
+    max-width: 1200px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .browser {
+    width: 100%;
+    max-width: 560px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 20px 60px rgba(0,0,0,0.15);
+    flex: 1;
+    min-width: 320px;
+  }
+  .browser-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+  }
+  .dots { display: flex; gap: 6px; }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+
+  /* ── LIGHT VARIANT ── */
+  .light .browser-bar { background: #f3f4f6; border-bottom: 1px solid #e5e7eb; }
+  .light .dot.r { background: #fca5a5; }
+  .light .dot.y { background: #fcd34d; }
+  .light .dot.g { background: #6ee7b7; }
+  .light .url { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 5px; padding: 4px 10px; font-size: 11px; color: #9ca3af; flex: 1; font-family: 'SF Mono', monospace; }
+
+  .light .app { background: #ffffff; display: grid; grid-template-rows: 48px 1fr; grid-template-columns: 1fr 280px; height: 500px; }
+  .light .topbar { grid-column: 1/-1; background: #f8f9fb; border-bottom: 1px solid #e5e7eb; padding: 0 20px; display: flex; align-items: center; gap: 16px; }
+  .light .logo { font-size: 14px; font-weight: 800; color: #111827; letter-spacing: -0.02em; }
+  .light .logo span { color: #2563eb; }
+  .light .doc-name { font-size: 13px; color: #9ca3af; font-weight: 400; }
+  .light .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .light .pill { display: flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+  .light .pill.a { background: #eff6ff; color: #2563eb; }
+  .light .pill.b { background: #f5f3ff; color: #7c3aed; }
+  .light .pill-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+  .light .badge-online { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: #059669; }
+  .light .badge-dot { width: 5px; height: 5px; border-radius: 50%; background: #059669; }
+  .light .viz-btn { font-size: 11px; color: #9ca3af; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 5px; padding: 3px 9px; cursor: pointer; }
+
+  .light .editor { background: #ffffff; padding: 40px 48px; overflow: auto; border-right: 1px solid #e5e7eb; }
+  .light .content { font-family: 'Georgia', serif; font-size: 16px; line-height: 1.8; color: #111827; max-width: 500px; }
+  .light .cursor-a { display: inline-block; width: 2px; height: 20px; background: #2563eb; vertical-align: text-bottom; margin-right: -1px; position: relative; }
+  .light .cursor-a::after { content: 'Tú'; position: absolute; bottom: 100%; left: 0; background: #2563eb; color: white; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px 3px 3px 0; font-family: -apple-system, sans-serif; white-space: nowrap; }
+  .light .cursor-b { display: inline-block; width: 2px; height: 20px; background: #7c3aed; vertical-align: text-bottom; margin-right: -1px; position: relative; }
+  .light .cursor-b::after { content: 'Usuario B'; position: absolute; bottom: 100%; left: 0; background: #7c3aed; color: white; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px 3px 3px 0; font-family: -apple-system, sans-serif; white-space: nowrap; }
+  .light .sel-b { background: rgba(124,58,237,0.06); }
+
+  .light .viz { background: #f8f9fb; border-left: 1px solid #e5e7eb; display: flex; flex-direction: column; }
+  .light .viz-head { padding: 12px 16px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; }
+  .light .viz-title { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #9ca3af; }
+  .light .viz-ops { flex: 1; overflow: auto; }
+  .light .op { padding: 10px 16px; border-bottom: 1px solid #f3f4f6; }
+  .light .op-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .light .tag { font-size: 9px; font-weight: 700; letter-spacing: 0.06em; padding: 1px 5px; border-radius: 3px; font-family: 'SF Mono', monospace; }
+  .light .tag.ins { background: #dbeafe; color: #1d4ed8; }
+  .light .tag.del { background: #fee2e2; color: #b91c1c; }
+  .light .tag.concurrent { background: #fef3c7; color: #92400e; }
+  .light .site { font-size: 10px; color: #9ca3af; font-family: 'SF Mono', monospace; }
+  .light .ids { font-size: 10px; color: #d1d5db; margin-bottom: 4px; font-family: 'SF Mono', monospace; }
+  .light .ids span { color: #6b7280; }
+  .light .diff { font-size: 10px; color: #6b7280; font-family: 'SF Mono', monospace; display: flex; gap: 8px; }
+  .light .diff .b4::before { content: '−'; color: #dc2626; }
+  .light .diff .af::before { content: '+'; color: #059669; }
+
+  /* ── DARK VARIANT ── */
+  .dark .browser-bar { background: #1e2434; border-bottom: 1px solid #2d3448; }
+  .dark .dot.r { background: #3d1f1f; }
+  .dark .dot.y { background: #3d3520; }
+  .dark .dot.g { background: #1d3d26; }
+  .dark .url { background: #0f1117; border: 1px solid #2d3448; border-radius: 5px; padding: 4px 10px; font-size: 11px; color: #4b5563; flex: 1; font-family: 'SF Mono', monospace; }
+
+  .dark .app { background: #0f1117; display: grid; grid-template-rows: 48px 1fr; grid-template-columns: 1fr 280px; height: 500px; }
+  .dark .topbar { grid-column: 1/-1; background: #161b27; border-bottom: 1px solid #2d3448; padding: 0 20px; display: flex; align-items: center; gap: 16px; }
+  .dark .logo { font-size: 14px; font-weight: 800; color: #f1f5f9; letter-spacing: -0.02em; }
+  .dark .logo span { color: #3b82f6; }
+  .dark .doc-name { font-size: 13px; color: #4b5563; }
+  .dark .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .dark .pill { display: flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+  .dark .pill.a { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .dark .pill.b { background: rgba(124,58,237,0.15); color: #a78bfa; }
+  .dark .pill-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+  .dark .badge-online { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: #34d399; }
+  .dark .badge-dot { width: 5px; height: 5px; border-radius: 50%; background: #34d399; }
+  .dark .viz-btn { font-size: 11px; color: #4b5563; background: #1e2434; border: 1px solid #2d3448; border-radius: 5px; padding: 3px 9px; cursor: pointer; }
+
+  .dark .editor { background: #0f1117; padding: 40px 48px; overflow: auto; border-right: 1px solid #2d3448; }
+  .dark .content { font-family: 'Georgia', serif; font-size: 16px; line-height: 1.8; color: #e2e8f0; max-width: 500px; }
+  .dark .cursor-a { display: inline-block; width: 2px; height: 20px; background: #3b82f6; vertical-align: text-bottom; margin-right: -1px; position: relative; }
+  .dark .cursor-a::after { content: 'Tú'; position: absolute; bottom: 100%; left: 0; background: #3b82f6; color: white; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px 3px 3px 0; font-family: -apple-system, sans-serif; white-space: nowrap; }
+  .dark .cursor-b { display: inline-block; width: 2px; height: 20px; background: #a78bfa; vertical-align: text-bottom; margin-right: -1px; position: relative; }
+  .dark .cursor-b::after { content: 'Usuario B'; position: absolute; bottom: 100%; left: 0; background: #a78bfa; color: white; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px 3px 3px 0; font-family: -apple-system, sans-serif; white-space: nowrap; }
+  .dark .sel-b { background: rgba(124,58,237,0.12); }
+
+  .dark .viz { background: #161b27; border-left: 1px solid #2d3448; display: flex; flex-direction: column; }
+  .dark .viz-head { padding: 12px 16px; border-bottom: 1px solid #2d3448; display: flex; align-items: center; justify-content: space-between; }
+  .dark .viz-title { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #4b5563; }
+  .dark .viz-ops { flex: 1; overflow: auto; }
+  .dark .op { padding: 10px 16px; border-bottom: 1px solid #1e2434; }
+  .dark .op-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .dark .tag { font-size: 9px; font-weight: 700; letter-spacing: 0.06em; padding: 1px 5px; border-radius: 3px; font-family: 'SF Mono', monospace; }
+  .dark .tag.ins { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .dark .tag.del { background: rgba(248,113,113,0.15); color: #f87171; }
+  .dark .tag.concurrent { background: rgba(251,191,36,0.12); color: #fbbf24; }
+  .dark .site { font-size: 10px; color: #4b5563; font-family: 'SF Mono', monospace; }
+  .dark .ids { font-size: 10px; color: #2d3448; margin-bottom: 4px; font-family: 'SF Mono', monospace; }
+  .dark .ids span { color: #4b5563; }
+  .dark .diff { font-size: 10px; color: #4b5563; font-family: 'SF Mono', monospace; display: flex; gap: 8px; }
+  .dark .diff .b4::before { content: '−'; color: #f87171; }
+  .dark .diff .af::before { content: '+'; color: #34d399; }
+
+  .mode-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #9ca3af; text-align: center; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<div class="meta">
+  <h1>Dirección B — Editorial Tech</h1>
+  <p>Documentation meets precision dashboard. Tipografía serif en el editor, monospace en los datos. Light y dark como ciudadanos de primera clase — no como un toggle tardío.</p>
+</div>
+
+<div class="pair">
+
+  <!-- LIGHT -->
+  <div class="light">
+    <div class="mode-label">Light Mode</div>
+    <div class="browser">
+      <div class="browser-bar">
+        <div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+        <div class="url">crdtext.railway.app</div>
+      </div>
+      <div class="app">
+        <div class="topbar">
+          <span class="logo">CRD<span>Text</span></span>
+          <span class="doc-name">sin título</span>
+          <div class="topbar-right">
+            <div class="pill a"><div class="pill-dot"></div>Tú</div>
+            <div class="pill b"><div class="pill-dot"></div>Usuario B</div>
+            <div class="badge-online"><div class="badge-dot"></div>online</div>
+            <button class="viz-btn">Visualizador</button>
+          </div>
+        </div>
+        <div class="editor">
+          <div class="content">
+            Los sistemas distribuidos son inherentemente
+            <span class="cursor-a"></span> no deterministas.
+            La pregunta no es si ocurrirán conflictos,
+            sino <span class="sel-b">cómo se <span class="cursor-b"></span>resolverán.</span><br><br>
+            CRDText implementa Logoot/LSEQ desde cero,
+            garantizando convergencia eventual.
+          </div>
+        </div>
+        <div class="viz">
+          <div class="viz-head">
+            <span class="viz-title">Operation Log</span>
+            <span style="font-size:10px;color:#d1d5db">14 ops</span>
+          </div>
+          <div class="viz-ops">
+            <div class="op">
+              <div class="op-row">
+                <span class="tag ins">INSERT</span>
+                <span class="site">site:A · λ=7</span>
+                <span class="tag concurrent" style="margin-left:auto">CONCURRENT</span>
+              </div>
+              <div class="ids">pos <span>[0.3, 0.6, 0.9]</span> · char <span>'s'</span></div>
+              <div class="diff"><span class="b4">resolver.</span><span class="af">resolverán.</span></div>
+            </div>
+            <div class="op">
+              <div class="op-row">
+                <span class="tag ins">INSERT</span>
+                <span class="site">site:B · λ=7</span>
+                <span class="tag concurrent" style="margin-left:auto">CONCURRENT</span>
+              </div>
+              <div class="ids">pos <span>[0.3, 0.6, 0.8]</span> · char <span>'c'</span></div>
+              <div class="diff"><span class="b4">resolver.</span><span class="af">cómo se resolverán.</span></div>
+            </div>
+            <div class="op">
+              <div class="op-row">
+                <span class="tag del">DELETE</span>
+                <span class="site">site:A · λ=6</span>
+              </div>
+              <div class="ids">pos <span>[0.1, 0.5]</span></div>
+              <div class="diff"><span class="b4">distribuidos.</span><span class="af">distribuidos</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DARK -->
+  <div class="dark">
+    <div class="mode-label">Dark Mode</div>
+    <div class="browser">
+      <div class="browser-bar">
+        <div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+        <div class="url">crdtext.railway.app</div>
+      </div>
+      <div class="app">
+        <div class="topbar">
+          <span class="logo">CRD<span>Text</span></span>
+          <span class="doc-name">sin título</span>
+          <div class="topbar-right">
+            <div class="pill a"><div class="pill-dot"></div>Tú</div>
+            <div class="pill b"><div class="pill-dot"></div>Usuario B</div>
+            <div class="badge-online"><div class="badge-dot"></div>online</div>
+            <button class="viz-btn">Visualizador</button>
+          </div>
+        </div>
+        <div class="editor">
+          <div class="content">
+            Los sistemas distribuidos son inherentemente
+            <span class="cursor-a"></span> no deterministas.
+            La pregunta no es si ocurrirán conflictos,
+            sino <span class="sel-b">cómo se <span class="cursor-b"></span>resolverán.</span><br><br>
+            CRDText implementa Logoot/LSEQ desde cero,
+            garantizando convergencia eventual.
+          </div>
+        </div>
+        <div class="viz">
+          <div class="viz-head">
+            <span class="viz-title">Operation Log</span>
+            <span style="font-size:10px;color:#2d3448">14 ops</span>
+          </div>
+          <div class="viz-ops">
+            <div class="op">
+              <div class="op-row">
+                <span class="tag ins">INSERT</span>
+                <span class="site">site:A · λ=7</span>
+                <span class="tag concurrent" style="margin-left:auto">CONCURRENT</span>
+              </div>
+              <div class="ids">pos <span>[0.3, 0.6, 0.9]</span> · char <span>'s'</span></div>
+              <div class="diff"><span class="b4">resolver.</span><span class="af">resolverán.</span></div>
+            </div>
+            <div class="op">
+              <div class="op-row">
+                <span class="tag ins">INSERT</span>
+                <span class="site">site:B · λ=7</span>
+                <span class="tag concurrent" style="margin-left:auto">CONCURRENT</span>
+              </div>
+              <div class="ids">pos <span>[0.3, 0.6, 0.8]</span> · char <span>'c'</span></div>
+              <div class="diff"><span class="b4">resolver.</span><span class="af">cómo se resolverán.</span></div>
+            </div>
+            <div class="op">
+              <div class="op-row">
+                <span class="tag del">DELETE</span>
+                <span class="site">site:A · λ=6</span>
+              </div>
+              <div class="ids">pos <span>[0.1, 0.5]</span></div>
+              <div class="diff"><span class="b4">distribuidos.</span><span class="af">distribuidos</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

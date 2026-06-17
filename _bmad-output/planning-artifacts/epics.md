@@ -1,17 +1,19 @@
 ---
 stepsCompleted: [1, 2, 3, 4]
 status: complete
-completedAt: '2026-06-13'
+completedAt: '2026-06-16'
 inputDocuments:
   - _bmad-output/planning-artifacts/prds/prd-crdtext-2026-06-13/prd.md
   - _bmad-output/planning-artifacts/architecture.md
+  - _bmad-output/planning-artifacts/ux-designs/ux-crdtext-2026-06-14/DESIGN.md
+  - _bmad-output/planning-artifacts/ux-designs/ux-crdtext-2026-06-14/EXPERIENCE.md
 ---
 
 # CRDText - Epic Breakdown
 
 ## Overview
 
-Este documento provee el desglose completo de epics y stories para CRDText, descomponiendo los requerimientos del PRD y la Arquitectura en stories implementables.
+Este documento provee el desglose completo de epics y stories para CRDText, descomponiendo los requerimientos del PRD, UX Design (DESIGN.md + EXPERIENCE.md) y la Arquitectura en stories implementables.
 
 ## Requirements Inventory
 
@@ -69,10 +71,24 @@ NFR12: El README explica el algoritmo, las decisiones de diseño y las propiedad
 - Zustand store en `src/lib/store/use-document-store.ts` con slices: document, engineRef, operationLog
 - Service Worker en `public/sw.js` registrado desde `src/app/layout.tsx`
 - Tests con Vitest; co-ubicados con los módulos que prueban
+- `siteId`: UUID v4 generado en el cliente al conectar, persistido en `sessionStorage`
+- Reconexión WebSocket con exponential backoff: 1s → 2s → 4s → 8s (máximo)
 
 ### UX Design Requirements
 
-N/A — no existe documento de UX Design para este proyecto.
+UX-DR1: Implementar el sistema de tokens de diseño (colores light/dark, tipografía de 3 roles — serif editor / monospace datos / sans-serif UI, escala de spacing base-4) como CSS custom properties en `src/app/globals.css`, siguiendo `DESIGN.md`.
+UX-DR2: Nombres de usuario auto-generados deben seguir el patrón `{Color}-{número de 4 dígitos}` (ej. "Azul-7342") — refina FR9, especifica el formato exacto de identidad automática.
+UX-DR3: Las presence pills en la topbar aparecen con fade-in de 200ms al conectar un usuario y desaparecen con fade-out de 200ms al desconectar (tras el timeout de heartbeat) — refina FR9/FR10.
+UX-DR4: Cuando hay más de 4 usuarios conectados, la topbar muestra las primeras 3 presence pills y un indicador "+N más" — refina FR9 para el caso N-usuarios.
+UX-DR5: Los cursores remotos se implementan vía `contenteditable` + Range API para posicionamiento absoluto sobre el texto; el envío de posición de cursor local usa debounce de 50ms — refina FR10 con la estrategia técnica de UI.
+UX-DR6: El cursor del usuario local pulsa lentamente (animación blink de 1s) cuando el editor tiene foco — detalle de UI no especificado en PRD.
+UX-DR7: El ConnectivityBadge muestra texto + subtexto contextual: `offline · N ops` y `sincronizando · N ops` mientras hay operaciones pendientes — refina FR18 con el contenido exacto del badge.
+UX-DR8: El panel del Operation Visualizer se abre/cierra con una animación de 300ms ease-in-out en el ancho de la columna (0px ↔ 360px); el contenido interno hace fade-in con 50ms de delay tras iniciar la apertura — refina FR23 con el comportamiento exacto de la transición.
+UX-DR9: El Operation Visualizer hace auto-scroll al fondo cuando llegan nuevas operaciones, salvo que el usuario haya scrolleado manualmente hacia arriba (se reactiva al volver al fondo) — detalle de comportamiento no especificado en PRD.
+UX-DR10: El Operation Visualizer virtualiza la lista de operaciones a partir de 200 entradas para mantener el rendimiento — detalle técnico de UI derivado de EXPERIENCE.md.
+UX-DR11: Los tags de operación en el log usan color fijo por tipo (INSERT = azul, DELETE = rojo) independientemente del site que generó la operación; el site se identifica por texto (`site:ID`) en la misma línea — refina FR20.
+UX-DR12: Accesibilidad: el editor usa `role="textbox"` + `aria-multiline="true"` + `aria-label`; el ConnectivityBadge usa `role="status"` + `aria-live="polite"`; los cursores remotos llevan `aria-hidden="true"`; el Operation Visualizer usa `aria-live="off"` para no saturar lectores de pantalla — requisito no cubierto por ningún FR del PRD, derivado de EXPERIENCE.md Accessibility Floor.
+UX-DR13: El tab order de la topbar sigue: logo → presence pills → connectivity badge → viz-toggle → editor. El panel del visualizador queda fuera del tab order (solo lectura) — derivado de EXPERIENCE.md.
 
 ### FR Coverage Map
 
@@ -100,40 +116,57 @@ FR21: Epic 4 — Marcado visual de operaciones concurrentes
 FR22: Epic 4 — Estado del documento antes y después de cada operación
 FR23: Epic 4 — Panel toggleable sin interrumpir la edición
 FR24: Epic 4 — Funciona en modo online y durante reconciliación offline
+UX-DR1: Epic 1 — Tokens de diseño en globals.css
+UX-DR2: Epic 2 — Formato de nombre auto-generado
+UX-DR3: Epic 2 — Animación de presence pills
+UX-DR4: Epic 2 — Overflow de presence pills (N usuarios)
+UX-DR5: Epic 2 — Cursor overlays vía contenteditable + Range API
+UX-DR6: Epic 2 — Animación de cursor local
+UX-DR7: Epic 3 — Subtexto del ConnectivityBadge
+UX-DR8: Epic 4 — Animación de apertura/cierre del panel
+UX-DR9: Epic 4 — Auto-scroll del operation log
+UX-DR10: Epic 4 — Virtualización del log
+UX-DR11: Epic 4 — Color fijo de tags de operación
+UX-DR12: Epic 1 + 2 + 3 + 4 — Accesibilidad transversal
+UX-DR13: Epic 2 — Tab order de la topbar
 
 ## Epic List
 
 ### Epic 1: Motor CRDT y Editor Base
-El usuario puede abrir el editor, escribir texto y verificar que el motor CRDT implementa correctamente las propiedades de convergencia eventual con tests que lo demuestran.
+El usuario puede abrir el editor, escribir texto y verificar que el motor CRDT implementa correctamente las propiedades de convergencia eventual con tests que lo demuestran, con la identidad visual del producto aplicada desde el inicio.
 **FRs cubiertos:** FR1, FR2, FR3, FR4, FR5, FR6
 **NFRs cubiertos:** NFR2, NFR4(a+b), NFR6, NFR7, NFR8, NFR11, NFR12
+**UX-DRs cubiertos:** UX-DR1, UX-DR12 (parcial — editor)
 
 ### Epic 2: Colaboración en Tiempo Real
-Dos usuarios pueden editar el mismo documento simultáneamente en navegadores distintos, ver los cambios del otro en tiempo real, con nombre/color asignados automáticamente y cursores visibles.
+Dos usuarios pueden editar el mismo documento simultáneamente en navegadores distintos, ver los cambios del otro en tiempo real, con nombre/color asignados automáticamente, cursores visibles y las animaciones de presencia especificadas en UX.
 **FRs cubiertos:** FR7, FR8, FR9, FR10, FR11, FR12
 **NFRs cubiertos:** NFR1, NFR3, NFR9, NFR10
+**UX-DRs cubiertos:** UX-DR2, UX-DR3, UX-DR4, UX-DR5, UX-DR6, UX-DR13, UX-DR12 (parcial — cursores)
 
 ### Epic 3: Modo Offline-First
-El usuario puede editar sin conexión y al reconectar el documento converge automáticamente al mismo estado en todos los clientes, sin pérdida de operaciones.
+El usuario puede editar sin conexión y al reconectar el documento converge automáticamente al mismo estado en todos los clientes, sin pérdida de operaciones, con feedback visual preciso del estado de sincronización.
 **FRs cubiertos:** FR13, FR14, FR15, FR16, FR17, FR18, FR19
 **NFRs cubiertos:** NFR4(c), NFR5
+**UX-DRs cubiertos:** UX-DR7, UX-DR12 (parcial — badge)
 
 ### Epic 4: Visualizador de Operaciones
-El usuario puede activar un panel que muestra en tiempo real cómo el algoritmo CRDT resuelve conflictos, con los identificadores internos del árbol Logoot/LSEQ visibles.
+El usuario puede activar un panel animado que muestra en tiempo real cómo el algoritmo CRDT resuelve conflictos, con los identificadores internos del árbol Logoot/LSEQ visibles, scroll inteligente y rendimiento garantizado.
 **FRs cubiertos:** FR20, FR21, FR22, FR23, FR24
 **NFRs cubiertos:** NFR11 (refuerzo)
+**UX-DRs cubiertos:** UX-DR8, UX-DR9, UX-DR10, UX-DR11, UX-DR12 (parcial — panel)
 
 ---
 
 ## Epic 1: Motor CRDT y Editor Base
 
-El usuario puede abrir el editor, escribir texto y verificar que el motor CRDT implementa correctamente las propiedades de convergencia eventual con tests que lo demuestran.
+El usuario puede abrir el editor, escribir texto y verificar que el motor CRDT implementa correctamente las propiedades de convergencia eventual con tests que lo demuestran, con la identidad visual del producto aplicada desde el inicio.
 
-### Story 1.1: Setup del Proyecto e Infraestructura Base
+### Story 1.1: Setup del Proyecto e Infraestructura Base (+ tokens de diseño)
 
 Como desarrollador,
-quiero inicializar el proyecto con la estructura correcta y tipos compartidos,
-para que todo el desarrollo futuro tenga una base consistente.
+quiero inicializar el proyecto con la estructura correcta, tipos compartidos y el sistema de tokens de diseño,
+para que todo el desarrollo futuro tenga una base consistente tanto técnica como visual.
 
 **Acceptance Criteria:**
 
@@ -152,6 +185,10 @@ para que todo el desarrollo futuro tenga una base consistente.
 **Given** que el proyecto existe
 **When** creo `vitest.config.ts`
 **Then** Vitest encuentra archivos `*.test.ts` co-ubicados con los módulos fuente
+
+**Given** `DESIGN.md` define los tokens de color, tipografía y spacing
+**When** creo `src/app/globals.css`
+**Then** todos los tokens (colores light/dark, 3 roles tipográficos, escala de spacing base-4) existen como CSS custom properties, con `prefers-color-scheme` o clase `.dark` controlando el modo (UX-DR1)
 
 ### Story 1.2: Implementación del Motor CRDT (Logoot/LSEQ)
 
@@ -201,17 +238,17 @@ para que la corrección sea demostrable como evidencia técnica de portafolio.
 **When** se lee su descripción
 **Then** nombra la propiedad CvRDT que verifica (no "test 1", "test 2")
 
-### Story 1.4: Editor de Texto Integrado con CRDT y README
+### Story 1.4: Editor de Texto Integrado con CRDT, Accesibilidad y README
 
 Como usuario,
-quiero un editor de texto donde cada pulsación pasa por el motor CRDT,
-para escribir texto con la garantía de que las operaciones se rastrean correctamente.
+quiero un editor de texto donde cada pulsación pasa por el motor CRDT y es accesible vía teclado/lector de pantalla,
+para escribir texto con la garantía de que las operaciones se rastrean correctamente y el editor es usable por cualquiera.
 
 **Acceptance Criteria:**
 
 **Given** la aplicación está corriendo
 **When** abro el editor en un browser
-**Then** veo un área de texto y puedo escribir
+**Then** veo un área de texto con la tipografía serif de `DESIGN.md` y puedo escribir
 
 **Given** escribo un carácter en la posición N
 **When** se procesa la pulsación
@@ -221,6 +258,10 @@ para escribir texto con la garantía de que las operaciones se rastrean correcta
 **When** se procesa la eliminación
 **Then** se llama `generateOperation('delete', N)` y el carácter desaparece
 
+**Given** el editor es un elemento `contenteditable`
+**When** inspecciono sus atributos ARIA
+**Then** tiene `role="textbox"`, `aria-multiline="true"` y `aria-label="Editor de texto colaborativo"` (UX-DR12)
+
 **Given** el `README.md`
 **When** un revisor técnico lo lee
 **Then** explica el algoritmo Logoot/LSEQ, las propiedades CvRDT garantizadas, las decisiones de stack y cómo ejecutar los tests
@@ -229,7 +270,7 @@ para escribir texto con la garantía de que las operaciones se rastrean correcta
 
 ## Epic 2: Colaboración en Tiempo Real
 
-Dos usuarios pueden editar el mismo documento simultáneamente en navegadores distintos, ver los cambios del otro en tiempo real, con nombre/color asignados automáticamente y cursores visibles.
+Dos usuarios pueden editar el mismo documento simultáneamente en navegadores distintos, ver los cambios del otro en tiempo real, con nombre/color asignados automáticamente, cursores visibles y las animaciones de presencia especificadas en UX.
 
 ### Story 2.1: Servidor WebSocket con Broadcast y Redis
 
@@ -265,7 +306,7 @@ para que los cambios aparezcan en tiempo real.
 
 **Given** el editor está abierto
 **When** se establece la conexión WebSocket
-**Then** el cliente envía `{ type: 'join', siteId, name, color }` al servidor
+**Then** el cliente envía `{ type: 'join', siteId, name, color }` al servidor, donde `siteId` es un UUID v4 generado y persistido en `sessionStorage`
 
 **Given** ocurre una edición local
 **When** `generateOperation` es llamado
@@ -279,25 +320,49 @@ para que los cambios aparezcan en tiempo real.
 **When** el cliente lo procesa
 **Then** cada operación del array se aplica secuencialmente y el documento queda reconstruido
 
-### Story 2.3: Identidad Automática de Usuarios y Cursores
+**Given** la conexión WebSocket se pierde
+**When** el cliente intenta reconectar
+**Then** usa exponential backoff: 1s → 2s → 4s → 8s (máximo) entre intentos
+
+### Story 2.3: Identidad Automática, Cursores y Presencia Visual
 
 Como usuario,
-quiero ver el cursor y nombre del otro usuario mientras edito,
-para saber dónde está en el documento.
+quiero ver el cursor y nombre del otro usuario mientras edito, con animaciones claras de quién está presente,
+para saber dónde está el otro en el documento y cuándo se conecta o desconecta.
 
 **Acceptance Criteria:**
 
 **Given** un usuario se conecta al editor
 **When** se establece la conexión
-**Then** se le asigna automáticamente un nombre único y un color distinto, guardados en Redis `doc:sites`
+**Then** se le asigna automáticamente un nombre con el patrón `{Color}-{4 dígitos}` (ej. "Azul-7342") y un color distinto, guardados en Redis `doc:sites` (UX-DR2)
 
-**Given** dos usuarios están conectados
-**When** el usuario A mueve su cursor
-**Then** el usuario B ve un indicador de cursor del color de A en esa posición del documento
+**Given** un usuario se conecta
+**When** su presence pill aparece en la topbar
+**Then** lo hace con un fade-in de 200ms (UX-DR3)
 
 **Given** un usuario se desconecta
 **When** el heartbeat limpia la conexión
-**Then** su cursor desaparece de la vista de todos los demás clientes en ≤30 segundos
+**Then** su presence pill desaparece con fade-out de 200ms y su cursor desaparece de la vista de todos los demás clientes, en ≤30 segundos totales (UX-DR3)
+
+**Given** hay más de 4 usuarios conectados simultáneamente
+**When** se renderiza la topbar
+**Then** se muestran las primeras 3 presence pills y un indicador "+N más" agrupando el resto (UX-DR4)
+
+**Given** dos usuarios están conectados
+**When** el usuario A mueve su cursor
+**Then** el cursor remoto se posiciona sobre el `contenteditable` vía Range API, con el envío de la posición debounced a 50ms (UX-DR5), y el usuario B ve un indicador de cursor del color de A en esa posición
+
+**Given** el cursor local tiene foco en el editor
+**When** está inactivo
+**Then** pulsa lentamente con una animación blink de 1s (UX-DR6)
+
+**Given** un cursor remoto es renderizado como overlay
+**When** inspecciono sus atributos de accesibilidad
+**Then** tiene `aria-hidden="true"` — los lectores de pantalla no lo anuncian (UX-DR12)
+
+**Given** la topbar tiene logo, presence pills y (en este punto del build) sin badge ni viz-toggle aún
+**When** navego con Tab
+**Then** el orden es: logo → presence pills → editor, estableciendo la base del tab order completo que se cierra en Epic 3 y Epic 4 (UX-DR13)
 
 ### Story 2.4: Deploy del Demo en Railway
 
@@ -317,18 +382,18 @@ para que sea accesible online como pieza de portafolio.
 
 **Given** la URL desplegada
 **When** dos browsers la abren simultáneamente
-**Then** ambos pueden editar colaborativamente con todas las funciones de Stories 2.1–2.3
+**Then** ambos pueden editar colaborativamente con todas las funciones de presencia, cursores y animaciones especificadas en Story 2.3
 
 ---
 
 ## Epic 3: Modo Offline-First
 
-El usuario puede editar sin conexión y al reconectar el documento converge automáticamente al mismo estado en todos los clientes, sin pérdida de operaciones.
+El usuario puede editar sin conexión y al reconectar el documento converge automáticamente al mismo estado en todos los clientes, sin pérdida de operaciones, con feedback visual preciso del estado de sincronización.
 
 ### Story 3.1: Detección de Conectividad y Feedback Visual
 
 Como usuario,
-quiero saber inmediatamente cuando pierdo conexión,
+quiero saber inmediatamente cuando pierdo conexión y cuántas operaciones están pendientes,
 para entender por qué los cambios pueden no estar sincronizando.
 
 **Acceptance Criteria:**
@@ -341,13 +406,25 @@ para entender por qué los cambios pueden no estar sincronizando.
 **When** escribo texto
 **Then** el editor permanece responsivo y puedo continuar editando sin errores
 
+**Given** hay operaciones pendientes mientras estoy offline
+**When** `ConnectivityBadge` se renderiza
+**Then** muestra el subtexto `offline · N ops`, donde N es el número de operaciones en el buffer (UX-DR7)
+
 **Given** se está reconectando
 **When** ocurre el handshake WebSocket
-**Then** `ConnectivityBadge` muestra "sincronizando"
+**Then** `ConnectivityBadge` muestra `sincronizando · N ops` mientras envía las operaciones pendientes (UX-DR7)
 
 **Given** la reconexión completa y el sync termina
 **When** todas las operaciones pendientes son enviadas
-**Then** `ConnectivityBadge` muestra "online"
+**Then** `ConnectivityBadge` muestra "online" sin subtexto
+
+**Given** el `ConnectivityBadge`
+**When** inspecciono sus atributos ARIA
+**Then** tiene `role="status"` y `aria-live="polite"` — los cambios de estado se anuncian sin interrumpir al usuario (UX-DR12)
+
+**Given** la topbar ahora incluye logo, presence pills y connectivity badge
+**When** navego con Tab
+**Then** el orden es: logo → presence pills → badge → editor, extendiendo el tab order parcial de Epic 2 (UX-DR13)
 
 ### Story 3.2: Buffer de Operaciones Offline con IndexedDB
 
@@ -417,7 +494,7 @@ para poder empezar a editar sin importar la conectividad.
 
 ## Epic 4: Visualizador de Operaciones
 
-El usuario puede activar un panel que muestra en tiempo real cómo el algoritmo CRDT resuelve conflictos, con los identificadores internos del árbol Logoot/LSEQ visibles.
+El usuario puede activar un panel animado que muestra en tiempo real cómo el algoritmo CRDT resuelve conflictos, con los identificadores internos del árbol Logoot/LSEQ visibles, scroll inteligente y rendimiento garantizado.
 
 ### Story 4.1: Log de Operaciones en el Store con Snapshots
 
@@ -439,30 +516,50 @@ para que el visualizador tenga datos completos para mostrar.
 **When** el store se actualiza
 **Then** el log captura estas operaciones también
 
-### Story 4.2: Panel Visualizador de Operaciones
+### Story 4.2: Panel Visualizador de Operaciones con Animación y Accesibilidad
 
 Como usuario,
-quiero activar un panel que muestra el log de operaciones con identificadores internos CRDT,
-para que yo o un revisor técnico pueda observar cómo el algoritmo resuelve conflictos.
+quiero activar un panel animado que muestra el log de operaciones con identificadores internos CRDT, con scroll inteligente y rendimiento estable,
+para que yo o un revisor técnico pueda observar cómo el algoritmo resuelve conflictos sin fricción.
 
 **Acceptance Criteria:**
 
 **Given** el editor está abierto
-**When** hago click en "Mostrar Visualizador"
-**Then** el panel `OperationVisualizer` aparece sin interrumpir la edición
+**When** hago click en "Visualizador" en la topbar
+**Then** el panel `OperationVisualizer` se abre con una animación de 300ms ease-in-out en el ancho de la columna (0px → 360px), y su contenido hace fade-in con 50ms de delay (UX-DR8)
 
 **Given** el panel está abierto
 **When** se aplica una operación
 **Then** aparece una nueva entrada mostrando: site ID, reloj Lamport, posición fraccional, tipo de operación, `docBefore`, `docAfter`
 
+**Given** los tags de operación en el log
+**When** se renderiza una entrada
+**Then** INSERT usa color azul y DELETE usa color rojo, independientemente del site que generó la operación — el site se identifica por el texto `site:ID` en la misma línea (UX-DR11)
+
 **Given** dos operaciones concurrentes existen en el log
 **When** miro el panel
 **Then** están marcadas visualmente con badge "CONCURRENTE" o color diferente
+
+**Given** llegan nuevas operaciones al log
+**When** el panel está abierto
+**Then** hace auto-scroll al fondo, salvo que el usuario haya scrolleado manualmente hacia arriba — en ese caso el auto-scroll se reactiva solo al volver al fondo (UX-DR9)
+
+**Given** el log supera las 200 entradas
+**When** se renderiza
+**Then** la lista usa virtualización para mantener el rendimiento (UX-DR10)
 
 **Given** el panel está abierto durante reconciliación offline→online
 **When** las operaciones pendientes se replayan
 **Then** cada operación aparece en el log en tiempo real conforme se aplica
 
+**Given** el panel del visualizador
+**When** inspecciono sus atributos ARIA
+**Then** tiene `aria-live="off"` — las entradas nuevas no se anuncian automáticamente a lectores de pantalla, evitando saturación (UX-DR12)
+
+**Given** la topbar ahora incluye logo, presence pills, badge y viz-toggle
+**When** navego con Tab
+**Then** el orden completo es: logo → presence pills → badge → viz-toggle → editor; el panel del visualizador queda fuera del tab order por ser de solo lectura, cerrando UX-DR13
+
 **Given** el panel está abierto
-**When** hago click en "Ocultar Visualizador"
-**Then** el panel desaparece y el editor continúa funcionando normalmente
+**When** hago click en "Ocultar"
+**Then** el panel se cierra con la misma animación de 300ms y el editor recupera el espacio sin salto de layout

@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRDText — Dirección C: Research Grade</title>
+<style>
+  /* ===== DIRECTION C: RESEARCH GRADE =====
+   * Registro: academic precision — como un paper de CRDT bien diseñado, hecho app
+   * Personalidad: profundidad intelectual visible, estructura explícita, sin ornamento
+   * La información ES el diseño. Cada elemento justifica su existencia.
+   *
+   * TOKENS:
+   * --bg-base:        #fafaf9   (ligeramente warm, no blanco puro)
+   * --bg-surface:     #f5f4f1
+   * --bg-panel:       #eeedea
+   * --border:         #d6d3cd
+   * --text-primary:   #1a1917
+   * --text-secondary: #57534e
+   * --text-muted:     #a8a29e
+   * --accent:         #dc2626   (rojo académico — como un marcador de revisor)
+   * --user-a:         #1d4ed8   (azul tinta)
+   * --user-b:         #15803d   (verde esmeralda)
+   * --mono:           'Courier New', 'Courier', monospace
+   * --serif:          'Georgia', 'Times New Roman', serif
+   *
+   * DARK OVERRIDE:
+   * --bg-base:        #18181b
+   * --bg-surface:     #1f1e1c
+   * --bg-panel:       #252421
+   * --border:         #3d3a36
+   * --text-primary:   #fafaf9
+   * --text-secondary: #a8a29e
+   * --accent:         #ef4444
+   * --user-a:         #60a5fa
+   * --user-b:         #4ade80
+  */
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #e2e0dc;
+    font-family: 'Georgia', serif;
+    color: #1a1917;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 60px;
+    min-height: 100vh;
+  }
+
+  .meta {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .meta h1 { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #dc2626; font-weight: 700; margin-bottom: 6px; font-family: -apple-system, sans-serif; }
+  .meta p  { font-size: 13px; color: #78716c; line-height: 1.6; max-width: 500px; font-family: -apple-system, sans-serif; }
+
+  /* BROWSER FRAME */
+  .browser {
+    width: 100%;
+    max-width: 1060px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #c7c3bc;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 24px 64px rgba(0,0,0,0.1);
+  }
+  .browser-bar {
+    background: #f0ede8;
+    border-bottom: 1px solid #d6d3cd;
+    padding: 9px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .dots { display: flex; gap: 6px; }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .dot.r { background: #e8b4b0; }
+  .dot.y { background: #e8dcb0; }
+  .dot.g { background: #b0dab8; }
+  .url {
+    flex: 1;
+    background: #fafaf9;
+    border: 1px solid #d6d3cd;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: #a8a29e;
+  }
+
+  /* APP GRID */
+  .app {
+    background: #fafaf9;
+    display: grid;
+    grid-template-rows: 52px 1fr;
+    grid-template-columns: 1fr 320px;
+    height: 600px;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    grid-column: 1/-1;
+    background: #f5f4f1;
+    border-bottom: 2px solid #1a1917;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .logo {
+    font-family: 'Georgia', serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: #1a1917;
+    letter-spacing: -0.02em;
+  }
+  .logo sup {
+    font-size: 9px;
+    vertical-align: super;
+    letter-spacing: 0.06em;
+    color: #dc2626;
+    font-family: -apple-system, sans-serif;
+    font-weight: 600;
+  }
+  .sep {
+    width: 1px;
+    height: 20px;
+    background: #d6d3cd;
+  }
+  .doc-name {
+    font-size: 13px;
+    color: #a8a29e;
+    font-family: -apple-system, sans-serif;
+    font-style: italic;
+  }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+
+  /* User presence as academic footnote-style indicators */
+  .user-tag {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: -apple-system, sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+  .user-tag .swatch { width: 10px; height: 10px; border-radius: 2px; }
+  .user-tag.a .swatch { background: #1d4ed8; }
+  .user-tag.b .swatch { background: #15803d; }
+  .user-tag.a { color: #1d4ed8; }
+  .user-tag.b { color: #15803d; }
+
+  .badge {
+    font-family: -apple-system, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 2px;
+    border: 1.5px solid;
+  }
+  .badge.online { color: #15803d; border-color: #15803d; background: rgba(21,128,61,0.05); }
+  .badge.offline { color: #dc2626; border-color: #dc2626; background: rgba(220,38,38,0.05); }
+
+  .viz-toggle {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: #78716c;
+    background: transparent;
+    border: 1px solid #d6d3cd;
+    padding: 4px 9px;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    border-radius: 2px;
+  }
+
+  /* EDITOR */
+  .editor {
+    padding: 52px 64px;
+    overflow: auto;
+    border-right: 1px solid #d6d3cd;
+    background: #fafaf9;
+  }
+  .content {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 16px;
+    line-height: 1.85;
+    color: #1a1917;
+    max-width: 580px;
+  }
+  .cursor-a {
+    display: inline-block;
+    width: 2px;
+    height: 20px;
+    background: #1d4ed8;
+    vertical-align: text-bottom;
+    margin: 0 -1px;
+    position: relative;
+  }
+  .cursor-a::after {
+    content: 'A';
+    position: absolute;
+    bottom: 100%;
+    left: -1px;
+    width: 14px;
+    height: 14px;
+    background: #1d4ed8;
+    color: white;
+    font-size: 8px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, sans-serif;
+    border-radius: 2px 2px 2px 0;
+  }
+  .cursor-b {
+    display: inline-block;
+    width: 2px;
+    height: 20px;
+    background: #15803d;
+    vertical-align: text-bottom;
+    margin: 0 -1px;
+    position: relative;
+  }
+  .cursor-b::after {
+    content: 'B';
+    position: absolute;
+    bottom: 100%;
+    left: -1px;
+    width: 14px;
+    height: 14px;
+    background: #15803d;
+    color: white;
+    font-size: 8px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, sans-serif;
+    border-radius: 2px 2px 2px 0;
+  }
+  .sel-b {
+    border-bottom: 2px solid #15803d;
+    background: rgba(21,128,61,0.06);
+  }
+
+  /* OPERATION VISUALIZER */
+  .viz {
+    background: #f5f4f1;
+    border-left: 1px solid #d6d3cd;
+    display: flex;
+    flex-direction: column;
+  }
+  .viz-head {
+    padding: 12px 16px;
+    border-bottom: 2px solid #d6d3cd;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .viz-title {
+    font-family: -apple-system, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #78716c;
+  }
+  .viz-sub {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: #a8a29e;
+    margin-left: auto;
+  }
+  .viz-ops { flex: 1; overflow: auto; }
+
+  .op {
+    padding: 10px 16px;
+    border-bottom: 1px solid #eeedea;
+    font-family: 'Courier New', monospace;
+  }
+  .op:hover { background: #eeedea; }
+  .op-line1 { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+  .op-type {
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    padding: 1px 4px;
+    border-radius: 1px;
+  }
+  .op-type.ins { color: #1d4ed8; border: 1px solid #1d4ed8; background: rgba(29,78,216,0.06); }
+  .op-type.del { color: #dc2626; border: 1px solid #dc2626; background: rgba(220,38,38,0.06); }
+  .op-site { font-size: 10px; color: #78716c; }
+  .op-concurrent {
+    margin-left: auto;
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    color: #dc2626;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    font-family: -apple-system, sans-serif;
+  }
+  .op-ids { font-size: 10px; color: #a8a29e; margin-bottom: 3px; }
+  .op-ids .val { color: #78716c; }
+  .op-diff { font-size: 10px; display: flex; flex-direction: column; gap: 1px; }
+  .diff-before { color: #a8a29e; text-decoration: line-through; }
+  .diff-after { color: #1a1917; }
+
+  /* MARGIN ANNOTATIONS */
+  .margin-note {
+    position: absolute;
+    right: -180px;
+    font-family: -apple-system, sans-serif;
+    font-size: 10px;
+    color: #dc2626;
+    line-height: 1.4;
+    width: 160px;
+    font-style: italic;
+  }
+  .editor-wrapper { position: relative; }
+
+  /* STATE SECTION */
+  .states {
+    margin-top: 36px;
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .state-item {
+    text-align: center;
+  }
+  .state-label {
+    font-family: -apple-system, sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #a8a29e;
+    margin-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+
+<div class="meta">
+  <h1>Dirección C — Research Grade</h1>
+  <p>Como un paper de CRDT con buen diseño tipográfico. La información es el diseño. Serif en el cuerpo, monospace en los datos técnicos, rojo académico como único acento.</p>
+</div>
+
+<div class="browser">
+  <div class="browser-bar">
+    <div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+    <div class="url">crdtext.railway.app</div>
+  </div>
+
+  <div class="app">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <span class="logo">CRDText<sup>CRDT</sup></span>
+      <div class="sep"></div>
+      <span class="doc-name">sin título</span>
+      <div class="topbar-right">
+        <div class="user-tag a"><div class="swatch"></div>Site A — Tú</div>
+        <div class="user-tag b"><div class="swatch"></div>Site B — Usuario B</div>
+        <div class="badge online">online</div>
+        <button class="viz-toggle">[ op-log ]</button>
+      </div>
+    </div>
+
+    <!-- EDITOR -->
+    <div class="editor">
+      <div class="editor-wrapper">
+        <div class="content">
+          Los sistemas distribuidos son inherentemente
+          <span class="cursor-a"></span>&nbsp;no deterministas.
+          La pregunta no es si ocurrirán conflictos,
+          sino <span class="sel-b">cómo se&nbsp;<span class="cursor-b"></span>resolverán.</span><br><br>
+          CRDText implementa el algoritmo Logoot/LSEQ
+          desde cero — sin dependencias externas de CRDT.
+          Las propiedades CvRDT garantizan convergencia
+          eventual en cualquier orden de llegada.
+        </div>
+      </div>
+    </div>
+
+    <!-- VISUALIZER -->
+    <div class="viz">
+      <div class="viz-head">
+        <span class="viz-title">Operation Log</span>
+        <span class="viz-sub">λ_max=7 · 14 ops</span>
+      </div>
+      <div class="viz-ops">
+
+        <div class="op">
+          <div class="op-line1">
+            <span class="op-type ins">INS</span>
+            <span class="op-site">site:A λ=7</span>
+            <span class="op-concurrent">CONCURRENT</span>
+          </div>
+          <div class="op-ids">pos=<span class="val">[0.3,0.6,0.9]</span> c=<span class="val">'s'</span></div>
+          <div class="op-diff">
+            <span class="diff-before">"resolver."</span>
+            <span class="diff-after">"resolverán."</span>
+          </div>
+        </div>
+
+        <div class="op">
+          <div class="op-line1">
+            <span class="op-type ins">INS</span>
+            <span class="op-site">site:B λ=7</span>
+            <span class="op-concurrent">CONCURRENT</span>
+          </div>
+          <div class="op-ids">pos=<span class="val">[0.3,0.6,0.8]</span> c=<span class="val">'c'</span></div>
+          <div class="op-diff">
+            <span class="diff-before">"resolver."</span>
+            <span class="diff-after">"cómo se resolverán."</span>
+          </div>
+        </div>
+
+        <div class="op">
+          <div class="op-line1">
+            <span class="op-type del">DEL</span>
+            <span class="op-site">site:A λ=6</span>
+          </div>
+          <div class="op-ids">pos=<span class="val">[0.1,0.5]</span></div>
+          <div class="op-diff">
+            <span class="diff-before">"distribuidos."</span>
+            <span class="diff-after">"distribuidos"</span>
+          </div>
+        </div>
+
+        <div class="op">
+          <div class="op-line1">
+            <span class="op-type ins">INS</span>
+            <span class="op-site">site:B λ=5</span>
+          </div>
+          <div class="op-ids">pos=<span class="val">[0.2,0.4]</span> c=<span class="val">'L'</span></div>
+          <div class="op-diff">
+            <span class="diff-before">"logoot"</span>
+            <span class="diff-after">"Logoot"</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATE VARIANTS -->
+<div class="states">
+  <div class="state-item">
+    <div class="state-label">Conectado</div>
+    <div class="badge online">online</div>
+  </div>
+  <div class="state-item">
+    <div class="state-label">Sin conexión</div>
+    <div class="badge offline">offline · 3 op</div>
+  </div>
+  <div class="state-item">
+    <div class="state-label">Sincronizando</div>
+    <div class="badge" style="color:#92400e;border-color:#92400e;background:rgba(146,64,14,0.05)">sincronizando</div>
+  </div>
+</div>
+
+</body>
+</html>

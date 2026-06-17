@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRDText — Dirección A: Precision Dark</title>
+<style>
+  /* ===== DIRECTION A: PRECISION DARK =====
+   * Registro: terminal meets modern tooling
+   * Personalidad: ingeniero serio, herramienta real
+   *
+   * TOKENS:
+   * --bg-base:        #0d0d0f
+   * --bg-surface:     #141416
+   * --bg-elevated:    #1c1c1f
+   * --bg-panel:       #111113
+   * --border:         #2a2a2e
+   * --border-strong:  #3a3a3f
+   * --text-primary:   #e8e8ea
+   * --text-secondary: #8a8a91
+   * --text-muted:     #52525a
+   * --accent:         #f0a050   (amber — decisión técnica, no startup)
+   * --accent-dim:     #7a4f20
+   * --user-a:         #4f9eff   (azul — sitio A)
+   * --user-b:         #a78bfa   (violeta — sitio B)
+   * --online:         #34d399
+   * --offline:        #f87171
+   * --syncing:        #fbbf24
+   * --mono:           'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace
+   * --sans:           -apple-system, 'Segoe UI', sans-serif
+  */
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #050507;
+    font-family: -apple-system, 'Segoe UI', sans-serif;
+    color: #e8e8ea;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 60px;
+    min-height: 100vh;
+  }
+
+  /* ─── META HEADER ─── */
+  .meta {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .meta h1 { font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: #f0a050; font-weight: 600; margin-bottom: 6px; }
+  .meta p  { font-size: 13px; color: #52525a; line-height: 1.5; max-width: 480px; }
+
+  /* ─── BROWSER CHROME ─── */
+  .browser {
+    width: 100%;
+    max-width: 1100px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #2a2a2e;
+    box-shadow: 0 0 0 1px #1c1c1f, 0 32px 80px rgba(0,0,0,0.7);
+  }
+  .browser-bar {
+    background: #141416;
+    border-bottom: 1px solid #2a2a2e;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .dots { display: flex; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot.r { background: #3a1a1a; }
+  .dot.y { background: #3a321a; }
+  .dot.g { background: #1a3a1a; }
+  .url-bar {
+    flex: 1;
+    background: #0d0d0f;
+    border: 1px solid #2a2a2e;
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 11px;
+    color: #52525a;
+    letter-spacing: 0.02em;
+  }
+  .url-bar span { color: #8a8a91; }
+
+  /* ─── APP LAYOUT ─── */
+  .app {
+    background: #0d0d0f;
+    display: grid;
+    grid-template-rows: 44px 1fr;
+    grid-template-columns: 1fr 360px;
+    height: 620px;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    grid-column: 1 / -1;
+    background: #111113;
+    border-bottom: 1px solid #2a2a2e;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 20px;
+  }
+  .logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: #f0a050;
+    letter-spacing: 0.06em;
+  }
+  .doc-title {
+    font-size: 13px;
+    color: #8a8a91;
+  }
+  .topbar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .presence-pills { display: flex; gap: 6px; }
+  .pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .pill.a { background: rgba(79,158,255,0.12); color: #4f9eff; border: 1px solid rgba(79,158,255,0.2); }
+  .pill.b { background: rgba(167,139,250,0.12); color: #a78bfa; border: 1px solid rgba(167,139,250,0.2); }
+  .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(52,211,153,0.1);
+    color: #34d399;
+    border: 1px solid rgba(52,211,153,0.2);
+    letter-spacing: 0.04em;
+  }
+  .badge-dot { width: 5px; height: 5px; border-radius: 50%; background: #34d399; }
+  .viz-toggle {
+    padding: 4px 10px;
+    background: transparent;
+    border: 1px solid #2a2a2e;
+    border-radius: 4px;
+    font-size: 11px;
+    color: #52525a;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* EDITOR AREA */
+  .editor-area {
+    background: #0d0d0f;
+    padding: 48px 60px;
+    overflow: auto;
+    position: relative;
+    border-right: 1px solid #2a2a2e;
+  }
+  .editor-content {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 15px;
+    line-height: 1.75;
+    color: #e8e8ea;
+    max-width: 640px;
+    position: relative;
+  }
+  .cursor-a {
+    display: inline-block;
+    width: 2px;
+    height: 18px;
+    background: #4f9eff;
+    vertical-align: text-bottom;
+    margin-right: -1px;
+    position: relative;
+  }
+  .cursor-a::after {
+    content: 'Tú';
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    background: #4f9eff;
+    color: #0d0d0f;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 4px;
+    border-radius: 3px 3px 3px 0;
+    white-space: nowrap;
+    font-family: -apple-system, sans-serif;
+    letter-spacing: 0.04em;
+  }
+  .cursor-b {
+    display: inline-block;
+    width: 2px;
+    height: 18px;
+    background: #a78bfa;
+    vertical-align: text-bottom;
+    margin-right: -1px;
+    position: relative;
+  }
+  .cursor-b::after {
+    content: 'Usuario B';
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    background: #a78bfa;
+    color: #0d0d0f;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 4px;
+    border-radius: 3px 3px 3px 0;
+    white-space: nowrap;
+    font-family: -apple-system, sans-serif;
+    letter-spacing: 0.04em;
+  }
+  .hl-b {
+    background: rgba(167,139,250,0.08);
+    border-bottom: 1px solid rgba(167,139,250,0.3);
+  }
+
+  /* OPERATION VISUALIZER PANEL */
+  .viz-panel {
+    background: #111113;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .viz-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid #2a2a2e;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .viz-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #52525a;
+    font-weight: 600;
+  }
+  .viz-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #3a3a3f;
+  }
+  .viz-ops {
+    flex: 1;
+    overflow: auto;
+    padding: 8px 0;
+  }
+  .op {
+    padding: 10px 16px;
+    border-bottom: 1px solid #1c1c1f;
+    transition: background 0.1s;
+  }
+  .op:hover { background: #141416; }
+  .op-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 5px;
+  }
+  .op-type {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+  .op-type.ins { background: rgba(79,158,255,0.15); color: #4f9eff; }
+  .op-type.del { background: rgba(248,113,113,0.15); color: #f87171; }
+  .op-site {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: #52525a;
+  }
+  .op-concurrent {
+    margin-left: auto;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #f0a050;
+    background: rgba(240,160,80,0.1);
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid rgba(240,160,80,0.2);
+  }
+  .op-ids {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #3a3a3f;
+    margin-bottom: 4px;
+  }
+  .op-ids span { color: #52525a; }
+  .op-diff {
+    display: flex;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+  }
+  .op-before { color: #52525a; }
+  .op-before::before { content: '−'; color: #f87171; margin-right: 3px; }
+  .op-after  { color: #8a8a91; }
+  .op-after::before  { content: '+'; color: #34d399; margin-right: 3px; }
+
+  /* ─── STATE VARIANT: OFFLINE BADGE ─── */
+  .state-section {
+    margin-top: 40px;
+    text-align: center;
+  }
+  .state-label {
+    font-size: 11px;
+    color: #3a3a3f;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .states-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .state-card {
+    background: #141416;
+    border: 1px solid #2a2a2e;
+    border-radius: 8px;
+    padding: 16px 24px;
+    min-width: 160px;
+  }
+  .state-card .badge { justify-content: center; margin-bottom: 8px; width: fit-content; margin-inline: auto; }
+  .state-card p { font-size: 11px; color: #3a3a3f; font-family: 'JetBrains Mono', monospace; }
+  .badge.offline { background: rgba(248,113,113,0.1); color: #f87171; border-color: rgba(248,113,113,0.2); }
+  .badge.offline .badge-dot { background: #f87171; }
+  .badge.syncing { background: rgba(251,191,36,0.1); color: #fbbf24; border-color: rgba(251,191,36,0.2); }
+  .badge.syncing .badge-dot { background: #fbbf24; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+</style>
+</head>
+<body>
+
+<div class="meta">
+  <h1>Dirección A — Precision Dark</h1>
+  <p>Terminal meets modern tooling. Monospace como lenguaje principal. Cada pixel comunica intención técnica deliberada. Dark-first con tokens para light mode.</p>
+</div>
+
+<div class="browser">
+  <div class="browser-bar">
+    <div class="dots">
+      <div class="dot r"></div>
+      <div class="dot y"></div>
+      <div class="dot g"></div>
+    </div>
+    <div class="url-bar"><span>crdtext.railway.app</span></div>
+  </div>
+
+  <div class="app">
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <span class="logo">CRDText</span>
+      <span class="doc-title">sin título</span>
+      <div class="topbar-right">
+        <div class="presence-pills">
+          <div class="pill a"><div class="pill-dot"></div>Tú</div>
+          <div class="pill b"><div class="pill-dot"></div>Usuario B</div>
+        </div>
+        <div class="badge"><div class="badge-dot"></div>online</div>
+        <button class="viz-toggle">[ viz ]</button>
+      </div>
+    </div>
+
+    <!-- EDITOR -->
+    <div class="editor-area">
+      <div class="editor-content">
+        <span>Los sistemas distribuidos son inherentemente</span>
+        <span class="cursor-a"></span>
+        <span> no deterministas. La pregunta no es</span><br>
+        <span>si ocurrirán conflictos, sino </span>
+        <span class="hl-b">cómo se <span class="cursor-b"></span>resolverán.</span><br><br>
+        <span>CRDText implementa Logoot/LSEQ desde cero</span><br>
+        <span>garantizando convergencia eventual mediante</span><br>
+        <span>propiedades CvRDT: conmutatividad,</span><br>
+        <span>asociatividad e idempotencia.</span>
+      </div>
+    </div>
+
+    <!-- OPERATION VISUALIZER -->
+    <div class="viz-panel">
+      <div class="viz-header">
+        <span class="viz-title">Operation Log</span>
+        <span class="viz-count">14 ops</span>
+      </div>
+      <div class="viz-ops">
+
+        <div class="op">
+          <div class="op-header">
+            <span class="op-type ins">INSERT</span>
+            <span class="op-site">site:A · λ=7</span>
+            <span class="op-concurrent">CONCURRENT</span>
+          </div>
+          <div class="op-ids">pos <span>[0.3, 0.6, 0.9]</span> · char <span>'s'</span></div>
+          <div class="op-diff">
+            <span class="op-before">resolver.</span>
+            <span class="op-after">resolverán.</span>
+          </div>
+        </div>
+
+        <div class="op">
+          <div class="op-header">
+            <span class="op-type ins">INSERT</span>
+            <span class="op-site">site:B · λ=7</span>
+            <span class="op-concurrent">CONCURRENT</span>
+          </div>
+          <div class="op-ids">pos <span>[0.3, 0.6, 0.8]</span> · char <span>'c'</span></div>
+          <div class="op-diff">
+            <span class="op-before">resolver.</span>
+            <span class="op-after">cómo se resolverán.</span>
+          </div>
+        </div>
+
+        <div class="op">
+          <div class="op-header">
+            <span class="op-type del">DELETE</span>
+            <span class="op-site">site:A · λ=6</span>
+          </div>
+          <div class="op-ids">pos <span>[0.1, 0.5]</span> · char <span>'.'</span></div>
+          <div class="op-diff">
+            <span class="op-before">distribuidos.</span>
+            <span class="op-after">distribuidos</span>
+          </div>
+        </div>
+
+        <div class="op">
+          <div class="op-header">
+            <span class="op-type ins">INSERT</span>
+            <span class="op-site">site:B · λ=5</span>
+          </div>
+          <div class="op-ids">pos <span>[0.2, 0.4]</span> · char <span>'L'</span></div>
+          <div class="op-diff">
+            <span class="op-before">logoot</span>
+            <span class="op-after">Logoot</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATE VARIANTS -->
+<div class="state-section">
+  <div class="state-label">Variantes de estado — ConnectivityBadge</div>
+  <div class="states-row">
+    <div class="state-card">
+      <div class="badge"><div class="badge-dot"></div>online</div>
+      <p>WebSocket activo</p>
+    </div>
+    <div class="state-card">
+      <div class="badge offline"><div class="badge-dot"></div>offline</div>
+      <p>3 ops pendientes</p>
+    </div>
+    <div class="state-card">
+      <div class="badge syncing"><div class="badge-dot"></div>sincronizando</div>
+      <p>enviando ops...</p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
