@@ -546,7 +546,7 @@ para que yo o un revisor técnico pueda observar cómo el algoritmo resuelve con
 
 **Given** el log supera las 200 entradas
 **When** se renderiza
-**Then** la lista usa virtualización para mantener el rendimiento (UX-DR10)
+**Then** la lista usa `@tanstack/react-virtual` para mantener el rendimiento (UX-DR10)
 
 **Given** el panel está abierto durante reconciliación offline→online
 **When** las operaciones pendientes se replayan

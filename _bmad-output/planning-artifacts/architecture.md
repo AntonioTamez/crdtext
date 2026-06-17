@@ -190,10 +190,12 @@ Store único con tres slices:
 Rationale: el Visualizador de Operaciones accede al log desde fuera del árbol del editor — Zustand evita prop drilling sin overhead.
 
 **Componentes principales:**
-- `<Editor />` — textarea controlado por el engine CRDT
-- `<CursorLayer />` — overlay con cursores de otros usuarios
-- `<OperationVisualizer />` — panel toggleable con el log en tiempo real
+- `<Editor />` — elemento `contenteditable` controlado por el engine CRDT (no `textarea`: los cursores remotos de `<CursorLayer />` se posicionan vía Range API sobre el DOM interno del editor, algo que un `textarea` nativo no expone)
+- `<CursorLayer />` — overlay con cursores de otros usuarios, posicionado vía Range API sobre `<Editor />`
+- `<OperationVisualizer />` — panel toggleable con el log en tiempo real; lista virtualizada con `@tanstack/react-virtual` cuando el log supera 200 entradas (UX-DR10), evitando degradación de rendimiento en sesiones largas de demo
 - `<ConnectivityBadge />` — indicador `online` / `offline` / `sincronizando`
+
+**Dependencia adicional:** `@tanstack/react-virtual` — headless, ~6kb, usado exclusivamente por `<OperationVisualizer />`.
 
 ---
 
@@ -386,7 +388,7 @@ crdtext/
 │   │   └── globals.css
 │   │
 │   ├── components/
-│   │   ├── Editor.tsx            # F1+F2 — textarea controlado por engine CRDT
+│   │   ├── Editor.tsx            # F1+F2 — contenteditable controlado por engine CRDT
 │   │   ├── CursorLayer.tsx       # F2 — overlay de cursores de otros usuarios
 │   │   ├── OperationVisualizer.tsx # F4 — panel toggleable con log de ops
 │   │   └── ConnectivityBadge.tsx # F3 — indicador online/offline/syncing
