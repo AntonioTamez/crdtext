@@ -2,17 +2,26 @@
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022"],
+    // NodeNext (not "bundler" like the root tsconfig.json) because this compiles
+    // to a real Node.js process, not through Next.js's bundler. This means
+    // relative imports under server/ and shared/ MUST use explicit .js extensions
+    // (e.g. `import { x } from '../shared/types.js'`), even though the .ts source
+    // file has no .js — that's Node's native ESM resolution rule, enforced here
+    // but not by the root tsconfig (which editors default to).
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "esModuleInterop": true,
     "strict": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "outDir": "dist/server",
-    "rootDir": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    // outDir "dist" (not "dist/server") + rootDir "." mirrors each input's path
+    // as-is: server/index.ts -> dist/server/index.js, shared/types.ts ->
+    // dist/shared/types.js. Using "dist/server" here would double-nest to
+    // dist/server/server/index.js.
+    "outDir": "dist",
+    "rootDir": "."
+    // No "paths" alias: server/ and shared/ never import from src/ (architecture.md
+    // boundary rule — server must not depend on the framework-bound src/ tree).
   },
   "include": ["server/**/*.ts", "shared/**/*.ts"],
   "exclude": ["node_modules", "src", ".next"]

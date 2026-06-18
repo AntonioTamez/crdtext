@@ -4,7 +4,7 @@ baseline_commit: 209d6af6176d6b29463734eca034ddf10850ff9f
 
 # Story 1.1: Setup del Proyecto e Infraestructura Base (+ tokens de diseño)
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -184,6 +184,19 @@ claude-sonnet-4-6
 - `globals.css` reemplaza los tokens genéricos del boilerplate (`--background`, `--foreground`) por el sistema completo de 22 tokens de color (×2 modos) + tipografía + spacing + rounded de `DESIGN.md`. Estrategia de dark mode: `prefers-color-scheme` (no clase `.dark`), consistente con el patrón que ya traía el scaffold de Next.js.
 - `src/app/page.tsx` y `src/app/page.module.css` (homepage boilerplate de `create-next-app`) se dejaron sin modificar — sus tokens locales están escopados a `.page` y no colisionan con los tokens globales. Se reemplazan en Story 1.4.
 - No se creó `server/` ni `src/lib/crdt/` — fuera de alcance de esta story (Stories 1.2 y 2.1 respectivamente). `tsconfig.server.json` queda configurado pero "apunta a la nada" hasta Story 2.1, tal como anticipado en Dev Notes.
+
+### Code Review Fixes (2026-06-17)
+
+`/code-review` (7-angle recall-biased pass) encontró 6 issues confirmados; los 6 se corrigieron en la misma sesión:
+
+1. **`vitest.config.ts`** — `environment: 'jsdom'` global aplicaba DOM globals a los futuros tests de `src/lib/crdt/` (que `architecture.md` exige framework-free) y de `server/` (Node-only), anulando la señal de aislamiento. Cambiado a `environment: 'node'` por defecto; futuros tests de componentes React usarán el comment `// @vitest-environment jsdom` por archivo (Vitest 4 removió `environmentMatchGlobs`, que fue el primer intento de fix y falló el typecheck — corregido al enfoque soportado).
+2. **`tsconfig.server.json`** — `rootDir: "."` + `outDir: "dist/server"` habría emitido `dist/server/server/index.js` (doble anidado) una vez exista `server/`. Cambiado `outDir` a `"dist"` para que el mirroring produzca `dist/server/index.js` y `dist/shared/types.js` correctamente.
+3. **`tsconfig.server.json`** — `paths: {"@/*": ["./src/*"]}` era config muerta (`src` está en `exclude`) y contradecía la regla de arquitectura de que `server/` nunca importa de `src/`. Eliminado, con comentario explicando por qué.
+4. **`tsconfig.server.json` vs `tsconfig.json`** — divergencia real entre `moduleResolution: "bundler"` (root, Next.js) y `"NodeNext"` (server) no se puede unificar (Next.js exige bundler; un proceso Node real exige NodeNext) — se agregó un comentario explícito advirtiendo que las importaciones relativas bajo `server/`/`shared/` necesitarán extensión `.js` explícita, ya que el editor (que usa el tsconfig root) no lo marcará como error.
+5. **`src/app/globals.css`** — faltaban `--font-data-sm`, `--font-ui-sm`, `--font-logo` (solo existían sus companions de size/line-height/weight) pese a que `DESIGN.md` especifica `fontFamily` para esos 3 roles. Agregados.
+6. **`src/app/page.module.css`** — el override de dark mode ponía `--background` y `--foreground` ambos en `#000`, colapsando el límite visual `.page`/`.main`. Cambiado a `#0a0a0a`/`#141414` (boilerplate de todas formas reemplazado en Story 1.4, pero no debía quedar roto mientras tanto).
+
+Suite completa re-verificada post-fix: lint ✅, typecheck app ✅, typecheck server ✅, tests 3/3 ✅ (ahora en 0ms de setup de entorno vs 1.77s antes), build ✅.
 
 ### File List
 
