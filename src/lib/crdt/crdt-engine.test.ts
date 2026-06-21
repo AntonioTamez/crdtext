@@ -108,3 +108,106 @@ describe('createCRDTEngine — idempotency (AC4)', () => {
     expect(afterSecond).toBe('')
   })
 })
+
+describe('createCRDTEngine — code review fixes (2026-06-21)', () => {
+  it('generateOperation("delete", index) throws a clear RangeError instead of crashing when the document is empty', () => {
+    const engine = createCRDTEngine('site-a')
+    expect(() => engine.generateOperation('delete', 0)).toThrow(RangeError)
+  })
+
+  it('generateOperation("delete", index) throws a clear RangeError when index is beyond the visible length', () => {
+    const engine = createCRDTEngine('site-a')
+    engine.applyOperation(engine.generateOperation('insert', 0, 'x'))
+    expect(() => engine.generateOperation('delete', 1)).toThrow(RangeError)
+    expect(() => engine.generateOperation('delete', 99)).toThrow(/no visible character at index 99/)
+  })
+
+  it('a delete that arrives before its matching insert is not lost — the insert is applied as already-deleted', () => {
+    const engineA = createCRDTEngine('site-a')
+    const engineB = createCRDTEngine('site-b')
+
+    const insertOp = engineA.generateOperation('insert', 0, 'x')
+    engineA.applyOperation(insertOp)
+    const deleteOp = engineA.generateOperation('delete', 0)
+    engineA.applyOperation(deleteOp)
+    expect(engineA.getDocument()).toBe('')
+
+    // engineB receives the delete BEFORE the insert (out-of-order network delivery)
+    engineB.applyOperation(deleteOp)
+    expect(engineB.getDocument()).toBe('') // nothing visible yet — insert hasn't arrived
+    engineB.applyOperation(insertOp)
+    expect(engineB.getDocument()).toBe('') // insert arrives, but must respect the earlier delete — NOT 'x'
+  })
+
+  it('idempotency holds even when the delete arrives before the insert and the whole sequence is replayed', () => {
+    const source = createCRDTEngine('site-a')
+    const insertOp = source.generateOperation('insert', 0, 'x')
+    source.applyOperation(insertOp)
+    const deleteOp = source.generateOperation('delete', 0)
+
+    const replica = createCRDTEngine('site-b')
+    replica.applyOperation(deleteOp) // out-of-order: delete arrives first
+    replica.applyOperation(insertOp)
+    const afterFirstRound = replica.getDocument()
+
+    // re-apply both operations again, in the same order, as a naive replay/retry would
+    replica.applyOperation(deleteOp)
+    replica.applyOperation(insertOp)
+    expect(replica.getDocument()).toBe(afterFirstRound)
+    expect(replica.getDocument()).toBe('')
+  })
+
+  it('two sites concurrently inserting at the same gap produce distinct, non-colliding positions', () => {
+    const engineA = createCRDTEngine('site-a')
+    const engineB = createCRDTEngine('site-b')
+
+    const base1 = engineA.generateOperation('insert', 0, 'a')
+    engineA.applyOperation(base1)
+    engineB.applyOperation(base1)
+    const base2 = engineA.generateOperation('insert', 1, 'c')
+    engineA.applyOperation(base2)
+    engineB.applyOperation(base2)
+
+    const opFromA = engineA.generateOperation('insert', 1, 'b')
+    const opFromB = engineB.generateOperation('insert', 1, 'B')
+
+    expect(opFromA.position.frac).not.toEqual(opFromB.position.frac)
+  })
+
+  it('a third concurrent insert lands correctly between two siblings inserted at the same gap', () => {
+    const engineA = createCRDTEngine('site-a')
+    const engineB = createCRDTEngine('site-b')
+    const engineC = createCRDTEngine('site-c')
+
+    const base1 = engineA.generateOperation('insert', 0, 'a')
+    ;[engineA, engineB, engineC].forEach((e) => e.applyOperation(base1))
+    const base2 = engineA.generateOperation('insert', 1, 'c')
+    ;[engineA, engineB, engineC].forEach((e) => e.applyOperation(base2))
+
+    // A and B concurrently insert at the same gap (index 1, between 'a' and 'c')
+    const opFromA = engineA.generateOperation('insert', 1, 'b')
+    const opFromB = engineB.generateOperation('insert', 1, 'B')
+    ;[engineA, engineB, engineC].forEach((e) => {
+      e.applyOperation(opFromA)
+      e.applyOperation(opFromB)
+    })
+    // All three engines now see the same 4-character document, e.g. "aBbc" or "abBc"
+    const converged = engineA.getDocument()
+    expect(engineB.getDocument()).toBe(converged)
+    expect(engineC.getDocument()).toBe(converged)
+    expect(converged).toHaveLength(4)
+
+    // engineC now inserts a 5th character at the visible gap between A's and B's siblings (index 2)
+    const opFromC = engineC.generateOperation('insert', 2, 'X')
+    ;[engineA, engineB, engineC].forEach((e) => e.applyOperation(opFromC))
+
+    const final = engineA.getDocument()
+    expect(engineB.getDocument()).toBe(final)
+    expect(engineC.getDocument()).toBe(final)
+    expect(final).toHaveLength(5)
+    expect(final).toContain('X')
+    // The inserted 'X' must actually land at the visible index it was generated for (index 2),
+    // not collapse to the end of the document — this is the regression this test guards against.
+    expect(final.indexOf('X')).toBe(2)
+  })
+})

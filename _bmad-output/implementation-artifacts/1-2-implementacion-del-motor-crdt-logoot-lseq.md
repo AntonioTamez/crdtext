@@ -4,7 +4,7 @@ baseline_commit: 5a0c39d46a0c471f1cdc2c3bbfda196438d97d92
 
 # Story 1.2: Implementación del Motor CRDT (Logoot/LSEQ)
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -210,6 +210,22 @@ claude-sonnet-4-6
 - No se creó `position-generator.test.ts` como archivo opcional separado — Dev Notes lo dejaba como opcional y se decidió escribirlo de todas formas (10 tests) porque las funciones puras de generación de posiciones son el corazón algorítmico del proyecto y merecen cobertura directa, no solo indirecta a través de `crdt-engine.test.ts`.
 - `Position` se definió y exporta desde `position-generator.ts` (no se agregó a `shared/types.ts`) tal como sugerían Dev Notes — es un detalle interno del engine.
 - Story 1.3 (próxima) construye sobre esta base la suite exhaustiva de propiedades CvRDT (escenarios (a), (b), (c) de NFR-C.1) — esta story deliberadamente no los duplicó.
+
+### Code Review Fixes (2026-06-21)
+
+`/code-review` (7-angle recall-biased pass) encontró 4 issues confirmados — el más severo (#1) fue independientemente detectado por 4 de los 7 ángulos. Los 4 se corrigieron en la misma sesión, siguiendo TDD (test RED → fix → GREEN) para cada uno:
+
+1. **`crdt-engine.ts` — `generateOperation('delete', index)` crasheaba con `TypeError` ante un índice fuera de rango** (documento vacío, o índice ≥ longitud visible). Corregido: ahora valida `targetNode` y lanza `RangeError` con mensaje claro (`"no visible character at index N"`) en vez de un crash opaco. 2 tests nuevos cubren documento vacío e índice fuera de rango.
+
+2. **`crdt-engine.ts` — un delete que llega antes que su insert correspondiente se perdía silenciosa y permanentemente**, violando NFR-C.1(c) (operaciones offline que llegan en orden inverso deben converger igual). Corregido: nuevo `Set<string> pendingDeletes` (clave = `site:clock:frac`) registra deletes "huérfanos"; cuando el insert correspondiente llega después, se aplica directamente como `deleted: true` en vez de resucitar el carácter. 2 tests nuevos cubren el caso base y la idempotencia bajo replay con el delete llegando primero.
+
+3. **`position-generator.ts` — colisión de `frac` garantizada entre inserts concurrentes en el mismo gap**, porque el algoritmo de punto medio era 100% determinista (mismo `before`/`after` → mismo resultado, sin importar el sitio). Esto causaba que un tercer insert posterior "entre" dos nodos colisionados aterrizara después de ambos en vez de entre ellos — alcanzable dentro del escenario MVP documentado (NFR-C.1a). **Fix:** `generateFracBetween` ahora recibe `siteId` y perturba el punto de división con un offset determinista (hash FNV-1a de `siteId`, mapeado a `(0.1, 0.9)`) — sigue siendo 100% reproducible/testeable, pero dos sitios distintos ya casi nunca colisionan. Se reescribieron los tests de `position-generator.test.ts` para verificar propiedades estructurales (estrictamente entre los límites) en vez de números mágicos exactos — más robusto. 3 tests nuevos: no-colisión entre sitios, el offset nunca toca los límites, y reproducibilidad. Test nuevo en `crdt-engine.test.ts` reproduce el escenario completo de 3 sitios (dos colisionan, un tercero inserta entre ellos) y confirma que el carácter aterriza en el índice visible correcto.
+
+4. **`crdt-engine.ts` — `findNodeIndexByPosition` hacía un scan O(n) (`Array.findIndex`) pese a que `nodes` siempre está ordenado** por el mismo comparador que ya usa `insertSorted` para insertar en O(log n). Corregido: ambas funciones ahora comparten un solo `lowerBound` (búsqueda binaria), eliminando la duplicación y bajando el lookup a O(log n). Sin tests nuevos — cubierto transitivamente por toda la suite existente de idempotencia/aplicación de operaciones.
+
+Suite completa re-verificada post-fix: lint ✅, typecheck app ✅, typecheck server ✅, tests 33/33 ✅ (21 originales + 6 de regresión para los fixes 1-2 + 6 adicionales en position-generator.test.ts), build ✅.
+
+**Nota de diseño:** El fix #3 cambia la firma pública de `generateFracBetween(before, after)` → `generateFracBetween(before, after, siteId)`. Es una función interna de `src/lib/crdt/`, sin consumidores fuera de este módulo (verificado por grep en el code review), así que el cambio no tiene impacto en ningún otro archivo del proyecto.
 
 ### File List
 
