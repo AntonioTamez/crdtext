@@ -45,7 +45,7 @@ development_status:
   epic-1: in-progress
   1-1-setup-del-proyecto-e-infraestructura-base: done
   1-2-implementacion-del-motor-crdt-logoot-lseq: done
-  1-3-tests-de-propiedades-cvrdt: backlog
+  1-3-tests-de-propiedades-cvrdt: done
   1-4-editor-de-texto-integrado-con-crdt-accesibilidad-y-readme: backlog
   epic-1-retrospective: optional
 

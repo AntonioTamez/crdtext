@@ -83,6 +83,39 @@ describe('createCRDTEngine — commutativity (AC3)', () => {
   })
 })
 
+describe('Commutativity — N-way concurrent inserts (NFR4 escenario a, exhaustivo)', () => {
+  it('three concurrent inserts at the same gap converge identically across all 6 application orders (commutativity)', () => {
+    const engines = [createCRDTEngine('site-a'), createCRDTEngine('site-b'), createCRDTEngine('site-c')]
+    const base = engines[0].generateOperation('insert', 0, 'a')
+    engines.forEach((e) => e.applyOperation(base))
+    const after = engines[0].generateOperation('insert', 1, 'z')
+    engines.forEach((e) => e.applyOperation(after))
+
+    // All three sites concurrently insert at the same gap (index 1), independently —
+    // each op is generated before any of the three is applied anywhere, so none of
+    // them is causally aware of the others.
+    const ops = engines.map((e, i) => e.generateOperation('insert', 1, 'XYZ'[i]))
+
+    // Apply all three operations, in `applicationOrder`, on a fresh replica engine
+    // representing one specific network delivery order.
+    function buildConverged(applicationOrder: number[]) {
+      const replica = createCRDTEngine('site-replica')
+      replica.applyOperation(base)
+      replica.applyOperation(after)
+      for (const i of applicationOrder) replica.applyOperation(ops[i])
+      return replica.getDocument()
+    }
+
+    const permutations = [
+      [0, 1, 2], [0, 2, 1], [1, 0, 2],
+      [1, 2, 0], [2, 0, 1], [2, 1, 0],
+    ]
+    const results = permutations.map(buildConverged)
+    expect(new Set(results).size).toBe(1) // all 6 delivery orders produce the exact same document
+    expect(results[0]).toHaveLength(5)
+  })
+})
+
 describe('createCRDTEngine — idempotency (AC4)', () => {
   it('applying the same operation twice does not change the document', () => {
     const engine = createCRDTEngine('site-a')
@@ -106,6 +139,36 @@ describe('createCRDTEngine — idempotency (AC4)', () => {
     const afterSecond = engine.getDocument()
     expect(afterSecond).toBe(afterFirst)
     expect(afterSecond).toBe('')
+  })
+})
+
+describe('Convergence — concurrent insert near X and delete of X (NFR4 escenario b)', () => {
+  it('the document converges identically regardless of which concurrent operation is applied first', () => {
+    const engineA = createCRDTEngine('site-a')
+    const engineB = createCRDTEngine('site-b')
+
+    // Both engines converge on a shared baseline document containing 'X'.
+    const baseOp = engineA.generateOperation('insert', 0, 'X')
+    engineA.applyOperation(baseOp)
+    engineB.applyOperation(baseOp)
+    expect(engineA.getDocument()).toBe('X')
+    expect(engineB.getDocument()).toBe('X')
+
+    // Concurrently, WITHOUT either site knowing about the other's operation yet:
+    // site A inserts a new character adjacent to 'X' ...
+    const insertOp = engineA.generateOperation('insert', 1, 'y') // -> "Xy"
+    // ... and site B deletes 'X' itself.
+    const deleteOp = engineB.generateOperation('delete', 0) // targets the 'X' node
+
+    // Apply both operations in opposite orders on each engine.
+    engineA.applyOperation(insertOp)
+    engineA.applyOperation(deleteOp)
+
+    engineB.applyOperation(deleteOp)
+    engineB.applyOperation(insertOp)
+
+    expect(engineA.getDocument()).toBe(engineB.getDocument())
+    expect(engineA.getDocument()).toBe('y') // 'X' is gone, 'y' survived — position-based, not index-based
   })
 })
 
