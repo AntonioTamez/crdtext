@@ -1,0 +1,13 @@
+.editor {
+  flex: 1;
+  font-family: var(--font-editor);
+  font-size: var(--font-editor-size);
+  line-height: var(--font-editor-line-height);
+  font-weight: var(--font-editor-weight);
+  color: var(--text-primary);
+  padding: var(--editor-v) var(--editor-h);
+  max-width: 640px;
+  margin: 0 auto;
+  white-space: pre-wrap;
+  outline: none;
+}
